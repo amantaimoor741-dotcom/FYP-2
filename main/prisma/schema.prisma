@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../server/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @default("")
+  email     String   @unique
+  name      String?
+  password  String?
+  plan      String   @default("free")
+  quota     Int      @default(3)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id           String   @id @default(cuid())
+  name         String
+  userId       String
+  status       String   @default("analyzing")
+  documentType String?
+  theme        String   @default("modern")
+  config       String   @default("{}")
+  error        String?
+  outputPath   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  website   Website?
+  documents Document[]
+}
+
+model Document {
+  id           String   @id @default(cuid())
+  userId       String
+  projectId    String?
+  originalName String
+  storageKey   String
+  mimeType     String
+  size         Int
+  status       String   @default("uploaded")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project Project? @relation(fields: [projectId], references: [id])
+}
+
+model Website {
+  id        String   @id @default(cuid())
+  projectId String   @unique
+  url       String?
+  platform  String   @default("vercel")
+  status    String   @default("draft")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+  version WebsiteVersion[]
+}
+
+model WebsiteVersion {
+  id         String   @id @default(cuid())
+  websiteId  String
+  version    Int      @default(1)
+  storageKey String?
+  createdAt  DateTime @default(now())
+
+  website Website @relation(fields: [websiteId], references: [id])
+}
+
+model Theme {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  label      String
+  colors     String   @default("{}")
+  typography String   @default("{}")
+  isPublic   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+model Settings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  data      String   @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
