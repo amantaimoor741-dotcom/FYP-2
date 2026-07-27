@@ -9,14 +9,13 @@ import {
   ChevronLeft,
   Loader2,
   Eye,
-  Chrome
 } from 'lucide-react';
-import { useSignIn, useSignUp } from '@clerk/clerk-react';
+import * as Clerk from '@clerk/clerk-react';
 import { useAuth } from '../context/DemoAuth';
 import { Button } from '../components/Shared';
 import { Page } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 function GoogleButton({ onSuccess }: { onSuccess: (credential: string) => void }) {
@@ -62,7 +61,6 @@ function AuthLayout({
 }) {
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row">
-      {/* Left Decoration (Desktop) */}
       <div className="hidden md:flex flex-1 bg-primary relative items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-linear-to-br from-primary via-secondary to-accent opacity-90" />
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.2),transparent)]" />
@@ -82,12 +80,10 @@ function AuthLayout({
           </p>
         </div>
 
-        {/* Floating Abstract Shapes */}
         <div className="absolute bottom-[-10%] left-[-10%] w-64 h-64 border-4 border-white/10 rounded-full" />
         <div className="absolute top-[10%] right-[-5%] w-48 h-48 border-2 border-white/5 rounded-full" />
       </div>
 
-      {/* Right Form Side */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-16 relative">
         {showBack && (
           <button 
@@ -111,8 +107,23 @@ function AuthLayout({
   );
 }
 
+const hasClerk = !!(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+
+function ClerkSignInLoader({ onReady }: { onReady: (d: { signIn: any; isLoaded: boolean }) => void }) {
+  const { signIn, isLoaded } = Clerk.useSignIn();
+  useEffect(() => { onReady({ signIn, isLoaded }); }, [signIn, isLoaded]);
+  return null;
+}
+
+function ClerkSignUpLoader({ onReady }: { onReady: (d: { signUp: any; isLoaded: boolean }) => void }) {
+  const { signUp, isLoaded } = Clerk.useSignUp();
+  useEffect(() => { onReady({ signUp, isLoaded }); }, [signUp, isLoaded]);
+  return null;
+}
+
 export function LoginPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
-  const { signIn, isLoaded } = useSignIn();
+  const [clerkData, setClerkData] = useState({ signIn: null as any, isLoaded: false });
+  const { signIn, isLoaded } = clerkData;
   const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -181,6 +192,7 @@ export function LoginPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
       onNavigate={onNavigate}
       showBack
     >
+      {hasClerk && <ClerkSignInLoader onReady={setClerkData} />}
       <form className="space-y-4" onSubmit={handleSubmit}>
         {!isLoaded && <div className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-sm">Using local auth — sign in with email/password.</div>}
         {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">{error}</div>}
@@ -239,7 +251,8 @@ export function LoginPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
 }
 
 export function SignupPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
-  const { signUp, isLoaded } = useSignUp();
+  const [clerkData, setClerkData] = useState({ signUp: null as any, isLoaded: false });
+  const { signUp, isLoaded } = clerkData;
   const auth = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -310,6 +323,7 @@ export function SignupPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
       onNavigate={onNavigate}
       showBack
     >
+      {hasClerk && <ClerkSignUpLoader onReady={setClerkData} />}
       <form className="space-y-4" onSubmit={handleSubmit}>
         {!isLoaded && <div className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-sm">Using local auth — create your account below.</div>}
         {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">{error}</div>}
