@@ -19,6 +19,11 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+// Root health check (required by Render)
+app.get('/', (_req, res) => {
+  res.json({ status: 'ok', service: 'docuweb-ai', timestamp: new Date().toISOString() });
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentRoutes);
