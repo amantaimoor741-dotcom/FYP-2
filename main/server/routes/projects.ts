@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
-import type { AuthRequest } from '../middleware/auth.ts';
-import { authMiddleware } from '../middleware/auth.ts';
-import { getUserProjects, getProject, deleteProject } from '../services/db/projects.ts';
+import type { AuthRequest } from '../middleware/auth.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { getUserProjects, getProject, deleteProject } from '../services/db/projects.js';
 
 const router = Router();
 

@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const isServerless = !!(process.env.FUNCTION_NAME || process.env.K_SERVICE || process.env.KOYEB_SERVICE_NAME);
+const DATA_DIR = isServerless ? path.join(os.tmpdir(), 'data') : path.join(process.cwd(), 'data');
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
 const GENERATED_DIR = path.join(DATA_DIR, 'generated');
 
@@ -37,6 +39,10 @@ const localProvider: StorageProvider = {
 };
 
 export const storage: StorageProvider = localProvider;
+
+export function getDataDir() {
+  return DATA_DIR;
+}
 
 export function getUploadPath(filename: string) {
   return `uploads/${filename}`;

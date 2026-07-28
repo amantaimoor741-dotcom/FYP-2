@@ -1,4 +1,4 @@
-import prisma from './client.ts';
+import prisma from './client.js';
 
 export async function createProject(data: {
   name: string;

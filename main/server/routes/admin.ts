@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import os from 'os';
-import type { AuthRequest } from '../middleware/auth.ts';
-import { authMiddleware } from '../middleware/auth.ts';
-import { getProjectStats, getAllProjects } from '../services/db/projects.ts';
-import { getUsageStats } from '../services/db/users.ts';
+import type { AuthRequest } from '../middleware/auth.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { getProjectStats, getAllProjects } from '../services/db/projects.js';
+import { getUsageStats } from '../services/db/users.js';
 
 const router = Router();
 

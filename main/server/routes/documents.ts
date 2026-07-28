@@ -2,14 +2,15 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { parseDocument } from '../services/documentParser.ts';
-import type { AuthRequest } from '../middleware/auth.ts';
-import { authMiddleware } from '../middleware/auth.ts';
-import { createDocument, getDocument } from '../services/db/documents.ts';
-import { storage, getUploadPath } from '../services/storage.ts';
+import { parseDocument } from '../services/documentParser.js';
+import type { AuthRequest } from '../middleware/auth.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { createDocument, getDocument } from '../services/db/documents.js';
+import { storage, getUploadPath, getDataDir } from '../services/storage.js';
 
 const router = Router();
-const UPLOAD_DIR = path.join(process.cwd(), 'data', 'uploads');
+const DATA_DIR = getDataDir();
+const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const multerStorage = multer.diskStorage({
@@ -53,7 +54,7 @@ router.get('/:id/content', authMiddleware, async (req: AuthRequest, res: any) =>
     return;
   }
 
-  const filePath = path.join(process.cwd(), 'data', doc.storageKey);
+  const filePath = path.join(DATA_DIR, doc.storageKey);
   if (!fs.existsSync(filePath)) {
     res.status(400).json({ error: 'Bad Request', message: 'Document file not found on server' });
     return;

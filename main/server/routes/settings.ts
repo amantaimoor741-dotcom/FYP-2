@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import type { AuthRequest } from '../middleware/auth.ts';
-import { authMiddleware } from '../middleware/auth.ts';
-import { getSettings, updateSettings } from '../services/db/settings.ts';
+import type { AuthRequest } from '../middleware/auth.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { getSettings, updateSettings } from '../services/db/settings.js';
 
 const router = Router();
 

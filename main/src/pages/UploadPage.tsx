@@ -25,7 +25,7 @@ export default function UploadPage({ onNavigate }: { onNavigate: (p: Page) => vo
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<Theme>('modern');
-  const [selectedModel, setSelectedModel] = useState('openai/gpt-4o-mini');
+  const [selectedModel, setSelectedModel] = useState('google/gemini-2.5-flash');
   const [aiConfig, setAiConfig] = useState<Record<string, boolean>>({
     headings: true,
     nav: true,
@@ -210,6 +210,8 @@ export default function UploadPage({ onNavigate }: { onNavigate: (p: Page) => vo
                   >
                     <option value="openai/gpt-4o-mini">GPT-4o Mini (Fast)</option>
                     <option value="openai/gpt-4o">GPT-4o (Powerful)</option>
+                    <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (Fast)</option>
+                    <option value="google/gemini-2.5-pro">Gemini 2.5 Pro (Most Capable)</option>
                   </select>
                 </div>
                 <div className="space-y-4">

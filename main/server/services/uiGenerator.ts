@@ -1,4 +1,4 @@
-import type { DocumentAnalysis } from '../types/index.ts';
+import type { DocumentAnalysis } from '../types/index.js';
 
 export type ThemeOption = 'modern' | 'portfolio' | 'enterprise';
 

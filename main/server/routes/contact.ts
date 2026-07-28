@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import type { AuthRequest } from '../middleware/auth.ts';
-import { createContactMessage } from '../services/db/contact.ts';
+import type { AuthRequest } from '../middleware/auth.js';
+import { createContactMessage } from '../services/db/contact.js';
 
 const router = Router();
 

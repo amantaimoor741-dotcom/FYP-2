@@ -1,18 +1,20 @@
 import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
-import type { AuthRequest } from '../middleware/auth.ts';
-import { authMiddleware } from '../middleware/auth.ts';
-import { parseDocument } from '../services/documentParser.ts';
-import { analyzeDocument } from '../services/geminiEngine.ts';
-import { classifyDomain, inferMissingRequirements } from '../services/reasoningEngine.ts';
-import type { GenerationConfig } from '../services/codeGenerator.ts';
-import { generateFullApp } from '../services/codeGenerator.ts';
-import { createProject, getProject, updateProject } from '../services/db/projects.ts';
-import { getDocument } from '../services/db/documents.ts';
+import type { AuthRequest } from '../middleware/auth.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { parseDocument } from '../services/documentParser.js';
+import { analyzeDocument } from '../services/geminiEngine.js';
+import { classifyDomain, inferMissingRequirements } from '../services/reasoningEngine.js';
+import type { GenerationConfig } from '../services/codeGenerator.js';
+import { generateFullApp } from '../services/codeGenerator.js';
+import { generateWebsiteHTML } from '../services/geminiEngine.js';
+import { createProject, getProject, updateProject } from '../services/db/projects.js';
+import { getDocument } from '../services/db/documents.js';
+import { getDataDir } from '../services/storage.js';
 
 const router = Router();
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = getDataDir();
 
 router.post('/', authMiddleware, async (req: AuthRequest, res: any) => {
   try {
@@ -22,7 +24,7 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: any) => {
     const doc = await getDocument(documentId);
     if (!doc) { res.status(404).json({ error: 'Not Found', message: 'Document not found' }); return; }
 
-    const filePath = path.join(process.cwd(), 'data', doc.storageKey);
+    const filePath = path.join(DATA_DIR, doc.storageKey);
     if (!fs.existsSync(filePath)) { res.status(400).json({ error: 'Bad Request', message: 'Document file not found' }); return; }
 
     const project = await createProject({
@@ -56,7 +58,7 @@ router.get('/:id/result', authMiddleware, async (req: AuthRequest, res: any) => 
   if (project.status !== 'completed') { res.status(400).json({ error: 'Not Ready', message: `Project is ${project.status}` }); return; }
   const analysis = project.config ? JSON.parse(project.config) : {};
   const previewUrl = project.outputPath
-    ? `/preview/${path.basename(project.outputPath, '.zip')}/preview.html`
+    ? `/preview/${project.id}/preview.html`
     : null;
   res.json({ ...project, documentAnalysis: analysis, previewUrl });
 });
@@ -76,14 +78,25 @@ async function processDocument(filePath: string, mimeType: string, projectId: st
     await updateProject(projectId, { config: analysis });
 
     await updateProject(projectId, { status: 'generating' });
-    const project = await getProject(projectId);
-    const theme = project?.theme || 'modern';
-    const config = project?.config ? JSON.parse(project.config) : {};
-    const genConfig: GenerationConfig = { theme, ...config };
-    const OUTPUT_DIR = path.join(DATA_DIR, 'generated');
-    const zipPath = await generateFullApp(analysis, projectId, OUTPUT_DIR, genConfig);
+    const OUTPUT_DIR = path.join(DATA_DIR, 'generated', projectId);
+    if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
-    await updateProject(projectId, { status: 'completed', outputPath: zipPath });
+    // Generate AI-powered website
+    try {
+      const html = await generateWebsiteHTML(text, modelId);
+      const previewPath = path.join(OUTPUT_DIR, 'preview.html');
+      fs.writeFileSync(previewPath, html);
+      await updateProject(projectId, { status: 'completed', outputPath: previewPath });
+    } catch (aiErr: any) {
+      console.error('AI generation failed, falling back to template:', aiErr.message);
+      // Fallback to template-based generation
+      const project = await getProject(projectId);
+      const theme = project?.theme || 'modern';
+      const config = project?.config ? JSON.parse(project.config) : {};
+      const genConfig: GenerationConfig = { theme, ...config };
+      const zipPath = await generateFullApp(analysis, projectId, path.join(DATA_DIR, 'generated'), genConfig);
+      await updateProject(projectId, { status: 'completed', outputPath: zipPath });
+    }
   } catch (err: any) {
     await updateProject(projectId, { status: 'failed', error: err.message });
   }

@@ -1,22 +1,105 @@
-import type { DocumentAnalysis } from '../types/index.ts';
+import type { DocumentAnalysis } from '../types/index.js';
 
 const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 const MODELS: Record<string, string> = {
   'openai/gpt-4o-mini': 'openai/gpt-4o-mini',
   'openai/gpt-4o': 'openai/gpt-4o',
+  'google/gemini-2.5-flash': 'google/gemini-2.5-flash',
+  'google/gemini-2.5-pro': 'google/gemini-2.5-pro',
 };
 
 function getApiKey(modelId?: string): string {
   const defaultKey = process.env.OPENROUTER_API_KEY || '';
   const key2 = process.env.OPENROUTER_API_KEY_2 || '';
+  const key3 = process.env.OPENROUTER_API_KEY_3 || '';
   if (modelId === 'openai/gpt-4o') return key2 || defaultKey;
+  if (modelId?.startsWith('google/')) return key3 || defaultKey;
   return defaultKey;
 }
 
 const SYSTEM_PROMPT = `You are a document analysis AI. Extract structured information from documents to generate full-stack web applications. Given a document, extract: title, description, domain classification, data entities, workflows, forms, API endpoints, permissions, features, missing features. Return ONLY valid JSON.`;
 
-async function generate(prompt: string, modelId?: string): Promise<string> {
+const WEBSITE_GENERATION_SYSTEM_PROMPT = `# SYSTEM ROLE & INSTRUCTION
+You are an advanced, automated UI/UX and Full-Stack Frontend Engine. You will receive raw extracted text/data from a user document. Your task is to process this data internally and transform it into a premium, modern, production-grade multi-page web application using React (via CDN with Babel).
+
+DO NOT output basic, generic, or partial boilerplate. Convert the document data into a fully functional, rich, interactive web application.
+
+---
+
+# PHASE 1: DATA EXTRACTION & ENRICHMENT (EXECUTE INTERNALLY BEFORE CODING)
+
+1. EXTRACT all structured data from the document: items, services, products, prices, descriptions, categories, contacts, addresses, hours, etc.
+
+2. ENRICH the extracted data with ADDITIONAL realistic content that a real business would need:
+   - If only items + prices are given: ADD descriptions, categories (e.g., "Featured", "Classic", "Seasonal"), dietary tags, preparation time, customer ratings/reviews, related items.
+   - If only name/contact given: ADD about/bio, team members, services offered, FAQs, testimonials, business hours in structured format.
+   - If no pricing: ADD realistic tiered pricing (Basic/Standard/Premium or Small/Medium/Large).
+   - The goal: the document is a seed — expand it into a complete business website.
+
+---
+
+# PHASE 2: ARCHITECTURE — MULTI-PAGE SPA USING REACT
+
+Build a single-page application using React 18 (via CDN) with the following structure:
+
+\`\`\`
+Pages:
+- Home (/): Hero section, featured items/gallery, key metrics/stats, call-to-action
+- About (/about): Company story, team members, mission/values timeline
+- Menu/Services (/menu): Dynamic listing with categories, filtering, search, item cards with images/descriptions/prices/tags
+- Pricing (/pricing): Tiered pricing cards with feature comparison
+- Contact (/contact): Contact form with validation, embedded map placeholder, business info
+- FAQ (/faq): Accordion-style frequently asked questions
+- Testimonials (/testimonials): Customer reviews carousel
+\`\`\`
+
+Navigation: sticky header with mobile hamburger menu, smooth scroll, active link highlighting.
+Routing: Implement a simple hash-based or state-based router (no external router library needed).
+
+---
+
+# PHASE 3: UI & DESIGN REQUIREMENTS
+
+1. **Design System**: Modern, cohesive color palette. Professional typography (Google Fonts via CDN). Consistent spacing, border radius, shadows. Support dark/light mode toggle.
+
+2. **Responsive**: Full mobile/tablet/desktop responsiveness. Mobile-first approach.
+
+3. **Animations & Micro-interactions**:
+   - Fade-in/slide-in on scroll reveal
+   - Hover scale/lift effects on cards
+   - Smooth page transitions
+   - Loading skeletons/spinners
+   - Toast notifications for form submission
+   - Modal for detailed item views
+
+4. **Every interactive element MUST work**:
+   - Menu filter/search: instantly filters items by category/keyword
+   - Contact form: validates fields, shows success toast, stores submission in localStorage
+   - FAQ accordion: clicks toggle answers
+   - Pricing toggle: monthly/yearly switcher
+   - Testimonial carousel: auto-rotates with manual nav dots
+   - Cart/favorite buttons: working state management
+
+---
+
+# PHASE 4: TECHNICAL REQUIREMENTS
+
+- React 18 via CDN: \`https://unpkg.com/react@18/umd/react.production.min.js\` and \`https://unpkg.com/react-dom@18/umd/react-dom.production.min.js\`
+- Babel standalone for JSX: \`https://unpkg.com/@babel/standalone/babel.min.js\`
+- Tailwind CSS via CDN: \`https://cdn.tailwindcss.com\`
+- Google Fonts (Inter or Poppins) via CDN
+- All state managed with React useState/useEffect hooks
+- All data stored in component state (mock data defined inline)
+- No external API calls — all data is client-side mock data
+- Type="text/babel" for script tags using JSX
+
+---
+
+# OUTPUT EXPECTATION
+Return ONLY a single complete HTML file containing the entire React SPA application with all CSS and JavaScript inline. The file must be fully self-contained and runnable by opening in a browser. Do NOT include any markdown formatting, code fences, or explanatory text outside the HTML. Start directly with <!DOCTYPE html>.`;
+
+async function generate(prompt: string, systemPrompt: string, modelId?: string): Promise<string> {
   const model = MODELS[modelId || 'openai/gpt-4o-mini'] || 'openai/gpt-4o-mini';
   const response = await fetch(API_URL, {
     method: 'POST',
@@ -27,9 +110,12 @@ async function generate(prompt: string, modelId?: string): Promise<string> {
     },
     body: JSON.stringify({
       model,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt },
+      ],
       temperature: 0.2,
-      max_tokens: 16000,
+      max_tokens: 32000,
     }),
   });
 
@@ -57,8 +143,8 @@ async function extractJSON<T>(text: string): Promise<T> {
   return JSON.parse(jsonStr) as T;
 }
 
-async function generateJSON<T>(prompt: string, modelId?: string): Promise<T> {
-  return extractJSON<T>(await generate(prompt, modelId));
+async function generateJSON<T>(prompt: string, systemPrompt: string = SYSTEM_PROMPT, modelId?: string): Promise<T> {
+  return extractJSON<T>(await generate(prompt, systemPrompt, modelId));
 }
 
 function normalizeAnalysis(raw: any): DocumentAnalysis {
@@ -147,7 +233,7 @@ function normalizeAnalysis(raw: any): DocumentAnalysis {
 
 export async function analyzeDocument(text: string, modelId?: string): Promise<DocumentAnalysis> {
   try {
-    const raw = await generateJSON<any>(`${SYSTEM_PROMPT}\n\nDocument:\n${text}`, modelId);
+    const raw = await generateJSON<any>(`Document:\n${text}`, SYSTEM_PROMPT, modelId);
     return normalizeAnalysis(raw);
   } catch (error: any) {
     console.error('AI analysis failed:', error.message);
@@ -157,13 +243,35 @@ export async function analyzeDocument(text: string, modelId?: string): Promise<D
 
 export async function inferenceMissingFeatures(analysis: DocumentAnalysis): Promise<string[]> {
   try {
-    return await generateJSON<string[]>(`Given this analysis, infer missing features:\n${JSON.stringify(analysis, null, 2)}`);
+    return await generateJSON<string[]>(`Given this analysis, infer missing features:\n${JSON.stringify(analysis, null, 2)}`, SYSTEM_PROMPT);
   } catch {
     return [];
   }
 }
 
+export async function generateWebsiteHTML(text: string, modelId?: string): Promise<string> {
+  const prompt = `Generate a complete React SPA website from this document content.
+
+DOCUMENT CONTENT:
+${text}
+
+INSTRUCTIONS:
+1. First, extract ALL data (items, prices, names, categories, contacts, etc.) from the document above.
+2. ENRICH the data with additional realistic content needed for a complete business website (descriptions, categories, featured items, testimonials, team, FAQs, etc.).
+3. Build a fully functional multi-page React SPA with: Home, About, Menu/Services, Pricing, Contact, FAQ, and Testimonials pages.
+4. Use React 18 + Babel + Tailwind CSS (all via CDN).
+5. EVERY button, form, filter, and interactive element MUST work with proper React state management.
+6. Include smooth animations, responsive design, dark/light mode, and professional styling.
+7. Start with <!DOCTYPE html>. Do NOT wrap in markdown code fences. Do NOT add any text before or after the HTML.`;
+  const raw = await generate(prompt, WEBSITE_GENERATION_SYSTEM_PROMPT, modelId);
+  let cleaned = raw.replace(/^```html\s*/i, '').replace(/^```\s*/i, '');
+  cleaned = cleaned.replace(/```[\s\S]*$/i, '');
+  const htmlMatch = cleaned.match(/(<!DOCTYPE[\s\S]*?<\/html>)/i);
+  if (htmlMatch) cleaned = htmlMatch[1];
+  return cleaned.trim();
+}
+
 export async function generateApplicationCode(analysis: DocumentAnalysis): Promise<any> {
   const prompt = `Generate full app code for:\n${JSON.stringify(analysis, null, 2)}\nReturn JSON with frontend, backend, databaseSchema, authConfig.`;
-  return await generateJSON(prompt);
+  return await generateJSON(prompt, SYSTEM_PROMPT);
 }

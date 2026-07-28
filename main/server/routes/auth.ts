@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { randomBytes, scryptSync, timingSafeEqual, createPublicKey } from 'crypto';
-import { prisma } from '../services/db/client.ts';
+import { prisma } from '../services/db/client.js';
 
 const router = Router();
 

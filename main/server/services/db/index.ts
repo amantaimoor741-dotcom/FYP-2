@@ -1,6 +1,6 @@
-export { prisma } from './client.ts';
-export { upsertUser, getUserByClerkId, getUsageStats } from './users.ts';
-export { createProject, getProject, getUserProjects, updateProject, deleteProject, getAllProjects, getProjectStats } from './projects.ts';
-export { createDocument, getDocument, getUserDocuments } from './documents.ts';
-export { getSettings, updateSettings } from './settings.ts';
-export { createContactMessage } from './contact.ts';
+export { prisma } from './client.js';
+export { upsertUser, getUserByClerkId, getUsageStats } from './users.js';
+export { createProject, getProject, getUserProjects, updateProject, deleteProject, getAllProjects, getProjectStats } from './projects.js';
+export { createDocument, getDocument, getUserDocuments } from './documents.js';
+export { getSettings, updateSettings } from './settings.js';
+export { createContactMessage } from './contact.js';

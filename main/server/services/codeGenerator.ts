@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import type { DocumentAnalysis } from '../types/index.ts';
-import type { ThemeOption } from './uiGenerator.ts';
-import { generateWireframes, generateDesignSystem } from './uiGenerator.ts';
+import type { DocumentAnalysis } from '../types/index.js';
+import type { ThemeOption } from './uiGenerator.js';
+import { generateWireframes, generateDesignSystem } from './uiGenerator.js';
 
 export interface GenerationConfig {
   theme?: ThemeOption;
@@ -331,7 +331,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-${analysis.entities.map(e => `import ${e.name.toLowerCase()}Routes from './routes/${e.name.toLowerCase()}.ts';`).join('\n')}
+${analysis.entities.map(e => `import ${e.name.toLowerCase()}Routes from './routes/${e.name.toLowerCase()}.js';`).join('\n')}
 
 ${analysis.entities.map(e => `app.use('/api/${e.name.toLowerCase()}s', ${e.name.toLowerCase()}Routes);`).join('\n')}
 

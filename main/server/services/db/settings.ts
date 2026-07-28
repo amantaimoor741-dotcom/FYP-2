@@ -1,4 +1,4 @@
-import prisma from './client.ts';
+import prisma from './client.js';
 
 export async function getSettings(userId: string) {
   const s = await prisma.settings.findUnique({ where: { userId } });
