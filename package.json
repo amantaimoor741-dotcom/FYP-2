@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "start": "node --import ./node_modules/dotenv/config ./node_modules/.bin/tsx main/server/index.ts",
     "preview": "vite preview",
     "server": "tsx watch main/server/index.ts",
     "dev:all": "npm run dev & npm run server",
@@ -34,7 +35,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "recharts": "^2.15.0",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^2.6.0",
+    "tsx": "^4.19.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",

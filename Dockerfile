@@ -17,4 +17,4 @@ EXPOSE 4000
 ENV NODE_ENV=production
 ENV PORT=4000
 
-CMD ["npx", "tsx", "main/server/index.ts"]
+CMD ["npm", "start"]
