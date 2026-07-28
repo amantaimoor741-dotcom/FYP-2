@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "start": "node --import ./node_modules/dotenv/config ./node_modules/.bin/tsx main/server/index.ts",
+    "start": "npx tsx main/server/index.ts",
     "preview": "vite preview",
     "server": "tsx watch main/server/index.ts",
     "dev:all": "npm run dev & npm run server",
