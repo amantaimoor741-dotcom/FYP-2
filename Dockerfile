@@ -5,8 +5,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY package.json ./
-
-RUN npm install
+RUN npm install --include=dev
 
 COPY main/prisma/schema.prisma ./main/prisma/
 RUN npx prisma generate --schema=main/prisma/schema.prisma
