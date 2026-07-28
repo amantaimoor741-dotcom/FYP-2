@@ -61,7 +61,7 @@ export default function PreviewPage({ onNavigate }: { onNavigate: (p: Page) => v
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        <aside className="w-80 border-r border-white/5 glass-dark flex flex-col">
+        <aside className="hidden md:flex w-80 border-r border-white/5 glass-dark flex-col">
           <div className="p-6 space-y-8 flex-1 overflow-y-auto">
             {loading ? (
               <div className="text-center py-12 text-text-muted">Loading...</div>
@@ -120,7 +120,7 @@ export default function PreviewPage({ onNavigate }: { onNavigate: (p: Page) => v
           </div>
         </aside>
 
-        <main className="flex-1 bg-black/40 relative flex items-center justify-center p-4">
+        <main className="flex-1 bg-black/40 relative flex items-center justify-center p-2 md:p-4">
           <motion.div layout transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className={cn(
               "bg-white shadow-[0_0_100px_rgba(108,99,255,0.1)] rounded-2xl overflow-hidden",

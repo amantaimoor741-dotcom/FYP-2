@@ -64,7 +64,12 @@ export function Button({
   );
 }
 
-export function Sidebar({ currentPage, onNavigate }: { currentPage: Page, onNavigate: (page: Page) => void }) {
+export function Sidebar({ currentPage, onNavigate, mobileOpen, onToggleMobile }: {
+  currentPage: Page,
+  onNavigate: (page: Page) => void,
+  mobileOpen?: boolean,
+  onToggleMobile?: () => void,
+}) {
   const { signOut } = useAuth();
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -79,24 +84,32 @@ export function Sidebar({ currentPage, onNavigate }: { currentPage: Page, onNavi
     { id: 'logout', label: 'Logout', icon: LogOut },
   ] as const;
 
-  return (
-    <aside className="w-60 border-r border-white/5 flex flex-col pt-8 pb-6 bg-[#0b1120] relative z-20">
-      <div className="px-6 mb-10 flex items-center gap-3 group cursor-pointer" onClick={() => onNavigate('landing')}>
+  const handleNav = (page: Page) => {
+    onNavigate(page);
+    onToggleMobile?.();
+  };
+
+  const sidebarContent = (
+    <>
+      <div className="px-6 mb-10 flex items-center gap-3 group cursor-pointer" onClick={() => handleNav('landing')}>
         <div className="size-8 rounded-lg bg-linear-135 from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/40 group-hover:rotate-12 transition-transform">
           <Sparkles className="size-5 text-white" />
         </div>
         <h2 className="font-extrabold text-xl leading-none tracking-tighter">Genisys AI</h2>
       </div>
 
-      <div className="px-6 mb-4">
+      <div className="px-6 mb-4 flex items-center justify-between">
         <p className="text-[10px] uppercase font-bold text-text-muted tracking-widest">Main Menu</p>
+        <button onClick={onToggleMobile} className="md:hidden p-1 rounded-lg hover:bg-white/5 text-text-muted">
+          <X className="size-4" />
+        </button>
       </div>
 
       <nav className="flex-1 px-4 space-y-1">
         {menuItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onNavigate((item.id === 'projects' || item.id === 'templates') ? 'dashboard' : item.id as Page)}
+            onClick={() => handleNav((item.id === 'projects' || item.id === 'templates') ? 'dashboard' : item.id as Page)}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group",
               currentPage === item.id 
@@ -120,7 +133,7 @@ export function Sidebar({ currentPage, onNavigate }: { currentPage: Page, onNavi
           {bottomItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => { if (item.id === 'logout') { signOut(); onNavigate('landing'); } else { onNavigate(item.id as Page); } }}
+              onClick={() => { if (item.id === 'logout') { signOut(); handleNav('landing'); } else { handleNav(item.id as Page); } }}
               className="w-full flex items-center gap-3 px-3 py-2 pr-4 rounded-lg text-sm font-medium text-text-muted hover:text-text-bright hover:bg-white/5 transition-all"
             >
               <item.icon className="size-4" />
@@ -129,18 +142,55 @@ export function Sidebar({ currentPage, onNavigate }: { currentPage: Page, onNavi
           ))}
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 md:hidden"
+          >
+            <div className="absolute inset-0 bg-black/60" onClick={onToggleMobile} />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="relative w-60 h-full bg-[#0b1120] border-r border-white/5 flex flex-col pt-8 pb-6"
+            >
+              {sidebarContent}
+            </motion.aside>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <aside className="hidden md:flex md:flex-col w-60 border-r border-white/5 pt-8 pb-6 bg-[#0b1120] relative z-20">
+        {sidebarContent}
+      </aside>
+    </>
   );
 }
 
 export function Navbar({ onNavigate, transparent = false }: { onNavigate: (page: Page) => void, transparent?: boolean }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleNav = (page: Page) => {
+    onNavigate(page);
+    setMobileOpen(false);
+  };
+
   return (
     <header className={cn(
       "fixed top-0 left-0 right-0 z-50 transition-colors py-4",
       transparent ? "bg-transparent" : "glass-dark border-b border-white/5 px-6"
     )}>
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 lg:px-8">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigate('landing')}>
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNav('landing')}>
           <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
             <Sparkles className="size-5 text-white" />
           </div>
@@ -148,16 +198,52 @@ export function Navbar({ onNavigate, transparent = false }: { onNavigate: (page:
         </div>
 
         <nav className="hidden md:flex items-center gap-8">
-          <button onClick={() => onNavigate('pricing')} className="text-sm font-medium text-text-muted hover:text-text-bright transition-colors">Pricing</button>
-          <button onClick={() => onNavigate('about')} className="text-sm font-medium text-text-muted hover:text-text-bright transition-colors">About</button>
-          <button onClick={() => onNavigate('contact')} className="text-sm font-medium text-text-muted hover:text-text-bright transition-colors">Support</button>
+          <button onClick={() => handleNav('pricing')} className="text-sm font-medium text-text-muted hover:text-text-bright transition-colors">Pricing</button>
+          <button onClick={() => handleNav('about')} className="text-sm font-medium text-text-muted hover:text-text-bright transition-colors">About</button>
+          <button onClick={() => handleNav('contact')} className="text-sm font-medium text-text-muted hover:text-text-bright transition-colors">Support</button>
         </nav>
 
-        <div className="flex items-center gap-4">
-          <button onClick={() => onNavigate('login')} className="text-sm font-medium text-text-muted hover:text-text-bright px-4">Log in</button>
-          <Button onClick={() => onNavigate('signup')} variant="primary" size="sm">Get Started</Button>
+        <div className="hidden md:flex items-center gap-4">
+          <button onClick={() => handleNav('login')} className="text-sm font-medium text-text-muted hover:text-text-bright px-4">Log in</button>
+          <Button onClick={() => handleNav('signup')} variant="primary" size="sm">Get Started</Button>
         </div>
+
+        <button onClick={() => setMobileOpen(true)} className="md:hidden p-2 rounded-xl hover:bg-white/5 text-text-muted">
+          <Menu className="size-5" />
+        </button>
       </div>
+
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 md:hidden"
+          >
+            <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="absolute right-0 top-0 h-full w-72 bg-[#0b1120] border-l border-white/10 p-6 pt-12"
+            >
+              <button onClick={() => setMobileOpen(false)} className="absolute top-4 right-4 p-2 rounded-xl hover:bg-white/5 text-text-muted">
+                <X className="size-5" />
+              </button>
+              <nav className="flex flex-col gap-4 mt-8">
+                <button onClick={() => handleNav('pricing')} className="text-left text-lg font-medium text-text-muted hover:text-text-bright transition-colors py-2">Pricing</button>
+                <button onClick={() => handleNav('about')} className="text-left text-lg font-medium text-text-muted hover:text-text-bright transition-colors py-2">About</button>
+                <button onClick={() => handleNav('contact')} className="text-left text-lg font-medium text-text-muted hover:text-text-bright transition-colors py-2">Support</button>
+                <hr className="border-white/10 my-4" />
+                <Button onClick={() => handleNav('login')} variant="outline" className="w-full">Log in</Button>
+                <Button onClick={() => handleNav('signup')} variant="primary" className="w-full">Get Started</Button>
+              </nav>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

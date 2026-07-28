@@ -11,7 +11,8 @@ import {
   Info,
   Layout,
   Palette,
-  Type
+  Type,
+  Menu
 } from 'lucide-react';
 import { Sidebar, Button } from '../components/Shared';
 import { Page, Theme } from '../types';
@@ -20,6 +21,7 @@ import { useProject } from '../context/ProjectContext';
 
 export default function UploadPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
   const { setProjectId } = useProject();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<Theme>('modern');
@@ -72,9 +74,14 @@ export default function UploadPage({ onNavigate }: { onNavigate: (p: Page) => vo
 
   return (
     <div className="flex min-h-screen bg-background text-text-bright">
-      <Sidebar currentPage="upload" onNavigate={onNavigate} />
+      <Sidebar currentPage="upload" onNavigate={onNavigate} mobileOpen={sidebarOpen} onToggleMobile={() => setSidebarOpen(false)} />
       
-      <main className="flex-1 flex flex-col items-center py-12 px-6 overflow-y-auto">
+      <main className="flex-1 flex flex-col items-center py-12 px-4 md:px-6 overflow-y-auto">
+        <div className="w-full flex md:hidden items-center mb-4">
+          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl hover:bg-white/5 text-text-muted">
+            <Menu className="size-5" />
+          </button>
+        </div>
         <div className="max-w-4xl w-full">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-display font-black tracking-tight mb-4">Create New Website</h1>

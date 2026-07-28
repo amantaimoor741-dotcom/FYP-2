@@ -51,6 +51,14 @@ html, body {
   animation: shiny 6s linear infinite;
 }
 
+.btn-gradient {
+  background: linear-gradient(135deg, #3D81E3, #6366f1);
+  color: white;
+}
+.btn-gradient:hover {
+  opacity: 0.9;
+}
+
 @keyframes float-slow {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }

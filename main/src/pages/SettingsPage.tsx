@@ -10,13 +10,15 @@ import {
   ShieldCheck,
   ChevronRight,
   Database,
-  Key
+  Key,
+  Menu
 } from 'lucide-react';
 import { Sidebar, Button } from '../components/Shared';
 import { Page } from '../types';
 import { cn } from '../lib/utils';
 
 export default function SettingsPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [settings, setSettings] = React.useState<any>(null);
   const [saving, setSaving] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
@@ -56,11 +58,14 @@ export default function SettingsPage({ onNavigate }: { onNavigate: (p: Page) => 
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar currentPage="settings" onNavigate={onNavigate} />
+      <Sidebar currentPage="settings" onNavigate={onNavigate} mobileOpen={sidebarOpen} onToggleMobile={() => setSidebarOpen(false)} />
       
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-20 border-b border-white/5 px-8 flex items-center justify-between glass-dark">
-           <h1 className="text-xl font-bold font-display">Workspace Settings</h1>
+        <header className="h-20 border-b border-white/5 px-4 md:px-8 flex items-center gap-3 glass-dark">
+          <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 rounded-xl hover:bg-white/5 text-text-muted">
+            <Menu className="size-5" />
+          </button>
+          <h1 className="text-xl font-bold font-display">Workspace Settings</h1>
         </header>
 
         <div className="p-8 max-w-5xl mx-auto w-full overflow-y-auto space-y-12">

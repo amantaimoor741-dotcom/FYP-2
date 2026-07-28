@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Users, Database, Activity, Shield, AlertTriangle, Cpu, Globe } from 'lucide-react';
+import { Users, Database, Activity, Shield, AlertTriangle, Cpu, Globe, Menu } from 'lucide-react';
 import { Sidebar, Button } from '../components/Shared';
 import { Page } from '../types';
 import { cn } from '../lib/utils';
 import { api } from '../lib/api';
 
 export default function AdminPanel({ onNavigate }: { onNavigate: (p: Page) => void }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,11 +24,14 @@ export default function AdminPanel({ onNavigate }: { onNavigate: (p: Page) => vo
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar currentPage="admin" onNavigate={onNavigate} />
+      <Sidebar currentPage="admin" onNavigate={onNavigate} mobileOpen={sidebarOpen} onToggleMobile={() => setSidebarOpen(false)} />
       
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-20 border-b border-white/5 px-8 flex items-center justify-between glass-dark">
+        <header className="h-20 border-b border-white/5 px-4 md:px-8 flex items-center justify-between glass-dark">
           <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 rounded-xl hover:bg-white/5 text-text-muted">
+              <Menu className="size-5" />
+            </button>
             <Shield className="size-6 text-primary" />
             <h1 className="text-xl font-bold font-display">Admin Controls</h1>
             <div className="h-4 w-[1px] bg-white/10 mx-2" />

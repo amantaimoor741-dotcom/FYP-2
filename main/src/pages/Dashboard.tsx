@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   FileUp, Search, Bell, Plus, MoreVertical, ExternalLink, Download, 
-  Clock, CheckCircle, AlertCircle, FileText, Eye, Trash2, TrendingUp, Users, Activity
+  Clock, CheckCircle, AlertCircle, FileText, Eye, Trash2, TrendingUp, Users, Activity,
+  Menu
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Sidebar, Button } from '../components/Shared';
@@ -19,6 +20,7 @@ const chartData = [
 
 export default function Dashboard({ onNavigate }: { onNavigate: (p: Page) => void }) {
   const { user } = useUser();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [projects, setProjects] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, completed: 0, processing: 0 });
   const [loading, setLoading] = useState(true);
@@ -47,13 +49,18 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: Page) => voi
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar currentPage="dashboard" onNavigate={onNavigate} />
+      <Sidebar currentPage="dashboard" onNavigate={onNavigate} mobileOpen={sidebarOpen} onToggleMobile={() => setSidebarOpen(false)} />
       
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="h-20 border-b border-white/5 px-8 flex items-center justify-between bg-[#0b1120]/50 backdrop-blur-xl sticky top-0 z-30">
-          <div className="relative w-full max-w-sm group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-text-muted group-focus-within:text-primary transition-colors" />
-            <input type="text" placeholder="Search projects..." className="w-full bg-white/5 border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary/50 transition-all" />
+        <header className="h-20 border-b border-white/5 px-4 md:px-8 flex items-center justify-between bg-[#0b1120]/50 backdrop-blur-xl sticky top-0 z-30">
+          <div className="flex items-center gap-3 flex-1">
+            <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 rounded-xl hover:bg-white/5 text-text-muted">
+              <Menu className="size-5" />
+            </button>
+            <div className="relative w-full max-w-sm group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-text-muted group-focus-within:text-primary transition-colors" />
+              <input type="text" placeholder="Search projects..." className="w-full bg-white/5 border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary/50 transition-all" />
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <button className="p-2.5 rounded-xl hover:bg-white/5 text-text-muted transition-colors relative">
@@ -73,7 +80,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: Page) => voi
           </div>
         </header>
 
-        <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
+        <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto w-full">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h1 className="text-3xl font-display font-extrabold tracking-tight">Dashboard Overview</h1>

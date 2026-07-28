@@ -1,0 +1,22 @@
+
+  🚀 DocuWeb AI Server running on http://localhost:4000
+  📄 API: http://localhost:4000/api/health
+
+Google auth error: PrismaClientKnownRequestError: 
+Invalid `prisma.user.findFirst()` invocation in
+C:\Users\Aman\Desktop\New folder\New folder\FYP 2\main\server\routes\auth.ts:135:34
+
+  132   return;
+  133 }
+  134 
+→ 135 let user = await prisma.user.findFirst(
+The column `main.User.password` does not exist in the current database.
+    at $n.handleRequestError (C:\Users\Aman\Desktop\New folder\New folder\FYP 2\main\server\generated\prisma\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (C:\Users\Aman\Desktop\New folder\New folder\FYP 2\main\server\generated\prisma\runtime\library.js:121:6623)
+    at $n.request (C:\Users\Aman\Desktop\New folder\New folder\FYP 2\main\server\generated\prisma\runtime\library.js:121:6307)
+    at async l (C:\Users\Aman\Desktop\New folder\New folder\FYP 2\main\server\generated\prisma\runtime\library.js:130:9633)
+    at async <anonymous> (C:\Users\Aman\Desktop\New folder\New folder\FYP 2\main\server\routes\auth.ts:135:16) {
+  code: 'P2022',
+  clientVersion: '5.22.0',
+  meta: { modelName: 'User', column: 'main.User.password' }
+}

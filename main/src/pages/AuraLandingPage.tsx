@@ -1,7 +1,7 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
-  ChevronRight, Menu, Sparkles, Search, Check, ArrowRight, 
+  ChevronRight, Menu, X, Sparkles, Search, Check, ArrowRight, 
   Zap, Layout, Code, FileText, Smartphone, Shield, Globe
 } from 'lucide-react';
 import { Page } from '../types';
@@ -26,6 +26,7 @@ function SectionEyebrow({ label, tag }: { label: string; tag?: string }) {
 
 export default function AuraLandingPage({ onNavigate }: { onNavigate?: (p: Page) => void }) {
   const [yearly, setYearly] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const fadeUp = (delay = 0) => ({
     initial: { opacity: 0, y: 20 },
@@ -94,11 +95,55 @@ export default function AuraLandingPage({ onNavigate }: { onNavigate?: (p: Page)
           </button>
         </div>
         <div className="md:hidden">
-          <button className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center">
+          <button onClick={() => setMobileMenuOpen(true)} className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center">
             <Menu className="w-4 h-4 text-white/70" />
           </button>
         </div>
       </motion.nav>
+
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 md:hidden"
+          >
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="relative w-72 h-full bg-[#0c0c0c] border-r border-white/10 p-6 pt-16"
+            >
+              <button onClick={() => setMobileMenuOpen(false)} className="absolute top-4 right-4 p-2 rounded-xl hover:bg-white/5 text-white/70">
+                <X className="w-5 h-5" />
+              </button>
+              <nav className="flex flex-col gap-2 mt-8">
+                {['Features', 'Pricing', 'Docs', 'About'].map((link) => (
+                  <button key={link} onClick={() => { setMobileMenuOpen(false); if (link === 'About') onNavigate?.('about'); }}
+                    className="text-left text-lg font-medium text-white/70 hover:text-white transition-colors py-3 border-b border-white/5"
+                  >
+                    {link}
+                  </button>
+                ))}
+                <hr className="border-white/10 my-4" />
+                <button onClick={() => { setMobileMenuOpen(false); onNavigate?.('login'); }}
+                  className="text-left text-lg font-medium text-white/70 hover:text-white transition-colors py-3"
+                >
+                  Log in
+                </button>
+                <button onClick={() => { setMobileMenuOpen(false); onNavigate?.('signup'); }}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white text-black font-medium text-sm px-5 py-3 mt-2"
+                >
+                  Get Started <ChevronRight className="w-4 h-4" />
+                </button>
+              </nav>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* HERO */}
       <section className="relative z-10 pt-16 md:pt-28 pb-20 text-center flex flex-col items-center px-6">
