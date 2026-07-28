@@ -17,10 +17,12 @@ function verifyPassword(password: string, stored: string): boolean {
   return derived.length === expected.length && timingSafeEqual(derived, expected);
 }
 
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'demo-secret-key-change-in-production';
+
 function makeToken(userId: string): string {
-  const ts = Date.now().toString(36);
-  const rand = randomBytes(8).toString('hex');
-  return `demo_token_${userId}_${ts}_${rand}`;
+  return jwt.sign({ userId, iat: Math.floor(Date.now() / 1000) }, JWT_SECRET, { expiresIn: '7d' });
 }
 
 router.post('/login', async (req, res) => {
@@ -119,9 +121,7 @@ router.post('/google', async (req, res) => {
     }
 
     const publicKey = createPublicKey({ format: 'jwk', key: { kty: 'RSA', n: jwk.n, e: jwk.e } });
-    const jwtMod = await import('jsonwebtoken');
-    const verify = jwtMod.default?.verify || jwtMod.verify;
-    const payload = verify(credential, publicKey, {
+    const payload = jwt.verify(credential, publicKey, {
       algorithms: ['RS256'],
       issuer: ['accounts.google.com', 'https://accounts.google.com'],
     }) as any;
