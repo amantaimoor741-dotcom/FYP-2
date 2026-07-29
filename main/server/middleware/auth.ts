@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '@clerk/backend';
+import jwt from 'jsonwebtoken';
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -7,16 +7,7 @@ export interface AuthRequest extends Request {
   file?: Express.Multer.File;
 }
 
-const DEMO_USER_ID = 'demo_user_001';
-
-function extractUserIdFromToken(token: string): string | null {
-  const parts = token.split('_');
-  // demo_token_{userId}_{ts}_{rand}  ->  parts = ['demo', 'token', userId, ts, rand]
-  if (parts.length >= 3) {
-    return parts[2] || null;
-  }
-  return null;
-}
+const JWT_SECRET = process.env.JWT_SECRET || 'demo-secret-key-change-in-production';
 
 export async function authMiddleware(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization;
@@ -27,18 +18,23 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
 
   const token = header.split(' ')[1];
 
-  if (token.startsWith('demo_token_')) {
-    const userId = extractUserIdFromToken(token);
-    req.userId = userId || DEMO_USER_ID;
-    req.userRole = userId === DEMO_USER_ID ? 'admin' : 'user';
+  // Verify our own JWT tokens
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as any;
+    req.userId = payload.userId;
+    req.userRole = 'user';
     next();
     return;
+  } catch {
+    // Not our token — fall through to Clerk
   }
 
+  // Fallback: verify Clerk token if configured
   try {
+    const { verifyToken } = await import('@clerk/backend');
     const secretKey = process.env.CLERK_SECRET_KEY;
     if (!secretKey) {
-      res.status(500).json({ error: 'Server Error', message: 'Clerk secret key not configured' });
+      res.status(401).json({ error: 'Unauthorized', message: 'Invalid or expired token' });
       return;
     }
     const payload = await verifyToken(token, {
